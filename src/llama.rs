@@ -1,5 +1,10 @@
 use llm::{InferenceParameters, Model};
 
+pub struct LLM {
+    model: llm::models::Llama,
+    session: llm::InferenceSession,
+}
+
 fn contexted_prompt(query: &str) -> String {
     format!(
 r#"### System:
@@ -24,36 +29,31 @@ fn last_n_chars(string: &str, n: usize) -> String {
     ].to_owned()
 }
 
-pub fn chat(prompt: &str, tokens: usize) -> String {
-    // load a GGML model from disk
-    let llama = llm::load::<llm::models::Llama>(
+pub fn init() -> LLM {
+    let model = llm::load::<llm::models::Llama>(
         std::path::Path::new("D:/Development/models-ai/llm/bin/open-llama-13b-open-instruct.ggmlv3.q4_0.bin"),
         llm::TokenizerSource::Embedded,
         Default::default(),
         |_|{},
     )
     .unwrap_or_else(|err| panic!("Failed to load model: {err}"));
+    let session = model.start_session(Default::default());
+    LLM { model, session }
+}
 
-    // use the model to generate text from a prompt
-    let mut session = llama.start_session(Default::default());
+pub fn chat(llm: &mut LLM, prompt: &str, tokens: Option<usize>) -> String {
     let prompt = &contexted_prompt(prompt);
     let mut response = String::new();
-    let _ = session.infer::<std::convert::Infallible>(
-        // model to use for text generation
-        &llama,
-        // randomness provider
+    let _ = llm.session.infer::<std::convert::Infallible>(
+        &llm.model,
         &mut rand::thread_rng(),
-        // the prompt to use for text generation, as well as other
-        // inference parameters
         &llm::InferenceRequest {
             prompt: llm::Prompt::Text(prompt),
             parameters: &InferenceParameters::default(),
             play_back_previous_tokens: false,
-            maximum_token_count: Some(tokens),
+            maximum_token_count: tokens,
         },
-        // llm::OutputRequest
         &mut Default::default(),
-        // output callback
         |t| { 
             match t {
                 llm::InferenceResponse::InferredToken(x) => {
@@ -65,12 +65,15 @@ pub fn chat(prompt: &str, tokens: usize) -> String {
                 llm::InferenceResponse::EotToken => {
                     return Ok(llm::InferenceFeedback::Halt);
                 },
-                _ => {}
+                _ => {},
             };
 
             Ok(llm::InferenceFeedback::Continue)
         }
     );
-
     response
+}
+
+pub fn lazy_chat(prompt: &str) -> String {
+    chat(&mut init(), prompt, None)
 }
