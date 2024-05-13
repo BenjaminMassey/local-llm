@@ -1,5 +1,6 @@
 use llm::{InferenceParameters, Model};
 
+const LLAMA_PATH: &str = "D:/Development/models-ai/llm/bin/open-llama-13b-open-instruct.ggmlv3.q4_0.bin";
 pub struct LLM {
     model: llm::models::Llama,
     session: llm::InferenceSession,
@@ -31,7 +32,7 @@ fn last_n_chars(string: &str, n: usize) -> String {
 
 pub fn init() -> LLM {
     let model = llm::load::<llm::models::Llama>(
-        std::path::Path::new("D:/Development/models-ai/llm/bin/open-llama-13b-open-instruct.ggmlv3.q4_0.bin"),
+        std::path::Path::new(LLAMA_PATH),
         llm::TokenizerSource::Embedded,
         Default::default(),
         |_|{},
