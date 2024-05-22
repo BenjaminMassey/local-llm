@@ -1,6 +1,8 @@
 use llm::{InferenceParameters, Model};
 
+const USE_GPU: bool = true;
 const LLAMA_PATH: &str = "D:/Development/models-ai/llm/bin/open-llama-13b-open-instruct.ggmlv3.q4_0.bin";
+
 pub struct LLM {
     model: llm::models::Llama,
     session: llm::InferenceSession,
@@ -31,10 +33,12 @@ fn last_n_chars(string: &str, n: usize) -> String {
 }
 
 pub fn init() -> LLM {
+    let mut params: llm::ModelParameters = Default::default();
+    params.use_gpu = USE_GPU;
     let model = llm::load::<llm::models::Llama>(
         std::path::Path::new(LLAMA_PATH),
         llm::TokenizerSource::Embedded,
-        Default::default(),
+        params,
         |_|{},
     )
     .unwrap_or_else(|err| panic!("Failed to load model: {err}"));
