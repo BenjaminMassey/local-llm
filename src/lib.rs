@@ -1,7 +1,7 @@
 use llm::{InferenceParameters, Model};
 
 const USE_GPU: bool = true;
-const LLAMA_PATH: &str = "D:/Development/models-ai/llm/bin/open-llama-13b-open-instruct.ggmlv3.q4_0.bin";
+const LLAMA_PATH: &str = "models/open-llama-13b-open-instruct.ggmlv3.q4_0.bin";
 
 pub struct LLM {
     model: llm::models::Llama,
