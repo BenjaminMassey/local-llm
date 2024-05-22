@@ -1,7 +1,6 @@
 use llm::{InferenceParameters, Model};
 
 const USE_GPU: bool = true;
-const LLAMA_PATH: &str = "models/open-llama-13b-open-instruct.ggmlv3.q4_0.bin";
 
 pub struct LLM {
     model: llm::models::Llama,
@@ -32,11 +31,11 @@ fn last_n_chars(string: &str, n: usize) -> String {
     ].to_owned()
 }
 
-pub fn init() -> LLM {
+pub fn init(llama_path: &str) -> LLM {
     let mut params: llm::ModelParameters = Default::default();
     params.use_gpu = USE_GPU;
     let model = llm::load::<llm::models::Llama>(
-        std::path::Path::new(LLAMA_PATH),
+        std::path::Path::new(llama_path),
         llm::TokenizerSource::Embedded,
         params,
         |_|{},
@@ -79,6 +78,6 @@ pub fn chat(llm: &mut LLM, prompt: &str, tokens: Option<usize>) -> String {
     response
 }
 
-pub fn lazy_chat(prompt: &str) -> String {
-    chat(&mut init(), prompt, None)
+pub fn lazy_chat(llama_path: &str, prompt: &str) -> String {
+    chat(&mut init(llama_path), prompt, None)
 }
