@@ -24,6 +24,7 @@ fn trim_trailing_newlines(string: &str) -> String {
 }
 
 pub fn init(llama_path: &str) -> LLama {
+    let _ = gag::Gag::stderr().unwrap();
     let model_options = ModelOptions {
         n_gpu_layers: 20,
         ..Default::default()
