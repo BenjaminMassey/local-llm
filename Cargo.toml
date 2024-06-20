@@ -7,4 +7,7 @@ edition = "2021"
 
 [dependencies]
 gag = "1.0.0"
-llama_cpp_rs = { git = "https://github.com/mdrokz/rust-llama.cpp", features = [ "cuda" ], rev = "407744f" }
+llama_cpp_rs = { git = "https://github.com/mdrokz/rust-llama.cpp", rev = "407744f" }
+
+[features]
+cuda = ["llama_cpp_rs/cuda"]
