@@ -27,6 +27,7 @@ pub fn init(llama_path: &str) -> LLama {
     let _ = gag::Gag::stderr().unwrap();
     let model_options = ModelOptions {
         n_gpu_layers: 20,
+        context_size: 2048,
         ..Default::default()
     };
     LLama::new(llama_path.into(), &model_options).unwrap()
@@ -39,6 +40,12 @@ pub fn chat(llama: &mut LLama, prompt: &str, tokens: Option<usize>) -> String {
         token_callback: Some(Box::new(|token| {
             !token.contains("#")
         })),
+        repeat: 64,
+        penalty: 1.3,
+        temperature: 0.1,
+        top_k: 40,
+        top_p: 0.95,
+        threads: 8,
         ..Default::default()
     };
     let result = llama
