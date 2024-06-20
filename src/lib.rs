@@ -5,14 +5,10 @@ use llama_cpp_rs::{
 
 fn contexted_prompt(query: &str) -> String {
     format!(
-r#"### System:
-You are an AI assistant who gives a quality response to whatever humans ask of you.
-
-### Human:
-{query}
-
-### Assistant:
-"#)
+r#"<|begin_of_text|><|start_header_id|>system<|end_header_id|>
+{{ you are a helpful assistant }}<|eot_id|><|start_header_id|>user<|end_header_id|>
+{{ {query} }}<|eot_id|><|start_header_id|>assistant<|end_header_id|>"#
+    )
 }
 
 fn trim_trailing_newlines(string: &str) -> String {
@@ -38,7 +34,9 @@ pub fn chat(llama: &mut LLama, prompt: &str, tokens: Option<usize>) -> String {
     let predict_options = PredictOptions {
         tokens: if tokens.is_none() { 0 } else { tokens.unwrap() as i32 },
         token_callback: Some(Box::new(|token| {
-            !token.contains("#")
+            !(token.contains("===") || token.contains("<|"))
+            // TODO: none of this seems proper, and it seems to break itself out
+            //       rather reasonably without this, so unsure
         })),
         repeat: 64,
         penalty: 1.3,
