@@ -1,7 +1,5 @@
-use llama_cpp_rs::{
-    options::{ModelOptions, PredictOptions},
-    LLama,
-};
+pub use llama_cpp_rs::LLama;
+use llama_cpp_rs::options::{ModelOptions, PredictOptions};
 
 fn contexted_prompt(query: &str) -> String {
     format!(
