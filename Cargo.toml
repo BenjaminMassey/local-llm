@@ -10,7 +10,7 @@ keywords = ["ai", "llm", "gpt", "llama", "chat"]
 
 [dependencies]
 gag = "1.0.0"
-llama_cpp_rs = { git = "https://github.com/BenjaminMassey/rust-llama.cpp", rev = "01255b9" }
+llama_cpp_rs = { git = "https://github.com/mdrokz/rust-llama.cpp", rev = "3377bfd" }
 
 [features]
 cuda = ["llama_cpp_rs/cuda"]
