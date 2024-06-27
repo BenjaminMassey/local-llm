@@ -1,9 +1,12 @@
 [package]
 name = "local-llm"
-version = "0.0.1"
+version = "0.1.0"
 edition = "2021"
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+authors = ["Benjamin Massey <benjamin.w.massey@gmail.com>"]
+description = "A simplified wrapper around the \"llama_cpp_rs\" crate for local usage of a Llama LLM."
+license = "MIT"
+repository = "https://github.com/BenjaminMassey/local-llm"
+keywords = ["ai", "llm", "gpt", "llama", "chat"]
 
 [dependencies]
 gag = "1.0.0"
@@ -11,3 +14,9 @@ llama_cpp_rs = { git = "https://github.com/BenjaminMassey/rust-llama.cpp", rev =
 
 [features]
 cuda = ["llama_cpp_rs/cuda"]
+
+[dev-dependencies]
+version-sync = "0.9"
+
+[badges.maintenance]
+status = "actively-developed"
