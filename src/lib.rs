@@ -75,7 +75,7 @@
 //! ```
 //! where one wants a particular size answer (150 tokens), since the LLM will instead
 //! start to craft a response of some determined size, but then arbitrarily cut off
-//! after the toekn count (rather than craft the response with the size in mind).
+//! after the token count (rather than craft the response with the size in mind).
 //! 
 //! ### Settings
 //! The last major limitation present is machine-specific settings. There is an intellectual
