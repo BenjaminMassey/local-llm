@@ -1,6 +1,6 @@
 [package]
 name = "local-llm"
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 authors = ["Benjamin Massey <benjamin.w.massey@gmail.com>"]
 description = "A simplified wrapper around the \"llama_cpp_rs\" crate for local usage of a Llama LLM."
@@ -10,7 +10,8 @@ keywords = ["ai", "llm", "gpt", "llama", "chat"]
 
 [dependencies]
 gag = "1.0.0"
-llama_cpp_rs = { git = "https://github.com/mdrokz/rust-llama.cpp", rev = "3377bfd" }
+llama_cpp_rs = { git = "https://github.com/BenjaminMassey/rust-llama.cpp", rev = "fbbd33a" }
+rand = "0.8.5"
 
 [features]
 cuda = ["llama_cpp_rs/cuda"]

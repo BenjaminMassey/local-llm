@@ -1,4 +1,4 @@
-#![doc(html_root_url = "https://docs.rs/local-llm/0.1.0")]
+#![doc(html_root_url = "https://docs.rs/local-llm/0.1.1")]
 
 //! `local_llm`:  a high level wrapper for llama.cpp bindings
 //!
@@ -19,6 +19,7 @@
 //!     prompt,
 //!     Some(50),
 //! );
+//! drop(llama);
 //! println!("Prompt:\n{prompt}\n\nResponse:\n{response}");
 //! ```
 //!
@@ -66,7 +67,6 @@
 //! where one knows that they are happy to cut off after one word, but is not useful for
 //! something like
 //! ```
-//! let mut llama = local_llm::init("C:/models/llama-model.gguf");
 //! let response = local_llm::chat(
 //!     &mut llama,
 //!     "Write me an essay on the American revolution.",
@@ -114,16 +114,21 @@ fn trim_trailing_newlines(string: &str) -> String {
 ///
 /// This function loads a .gguf model file to be used by llama.cpp's LLM backend
 /// as the model running LLM inference. It will return a llama_cpp_rs::LLama instance
-/// (accessible via this crate), which can be passed to the `chat(..)` function.
+/// (accessible via this crate), which can be passed to the `chat(..)` function. Make
+/// sure to `drop(..)` your initialized model, which will make sure `free_model()` is
+/// properly called.
 ///
 /// ```
 /// let mut llama: local_llm::LLama = local_llm::init("/path/to/model.gguf");
+/// // perform operations
+/// drop(llama);
 /// ```
 /// 
-/// Note that this is embedded for one-off instances in the `lazy_chat(..)` function.
+/// Note that this is embedded for one-off instances in the `single_chat(..)` function.
 pub fn init(llama_path: &str) -> LLama {
     let _ = gag::Gag::stderr().unwrap();
     let model_options = ModelOptions {
+        seed: rand::random::<i32>(),
         n_gpu_layers: if cfg!(feature = "cuda") { 20 } else { 0 },
         context_size: 2048,
         ..Default::default()
@@ -135,32 +140,34 @@ pub fn init(llama_path: &str) -> LLama {
 ///
 /// This function takes a llama_cpp_rs::LLama instance `llama`, runs inference with
 /// a chat-style wrapped `prompt`, optionally cuts off inference at some `tokens` amount,
-/// and returns the String response.
+/// and returns the String response. Make sure to `drop(..)` your initialized model, which
+/// will make sure `free_model()` is properly called.
 ///
 /// ```
+/// let mut llama = local_llm::init("/path/to/model.gguf");
 /// let response: String = local_llm::chat(
-///     &mut local_llm::init("/path/to/model.gguf"),
+///     &mut llama,
 ///     "How do I write a resume?",
 ///     Some(100),
 /// );
+/// drop(llama);
 /// ```
 /// 
-/// Note that this is embedded for one-off instances in the `lazy_chat(..)` function.
+/// Note that this is embedded for one-off instances in the `single_chat(..)` function.
 pub fn chat(llama: &mut LLama, prompt: &str, tokens: Option<usize>) -> String {
     let prompt = &contexted_prompt(prompt);
     let predict_options = PredictOptions {
+        seed: rand::random::<i32>(),
         tokens: if let Some(t) = tokens { t as i32 } else { 0 },
         token_callback: Some(Box::new(|token| {
             !(token.contains("===") || token.contains("<|"))
             // TODO: none of this seems proper, and it seems to break itself out
             //       rather reasonably without this, so unsure
         })),
-        repeat: 64,
-        penalty: 1.3,
-        temperature: 0.1,
         top_k: 40,
-        top_p: 0.95,
-        threads: 8,
+        top_p: 0.4,
+        batch: 128,
+        temperature: 0.9,
         ..Default::default()
     };
     let result = llama.predict(prompt.into(), predict_options).unwrap();
@@ -171,17 +178,20 @@ pub fn chat(llama: &mut LLama, prompt: &str, tokens: Option<usize>) -> String {
 ///
 /// This function loads an LLM model from a `llama_path` .gguf file using
 /// the `init(..)` function, passes that model instance and a `prompt`
-/// string to the `chat(..)` function, and returns the `chat(..)` function's
-/// response. It gives no token cutoff amount.
+/// string to the `chat(..)` function, frees the loaded model, and returns
+/// the `chat(..)` function's response. It gives no token cutoff amount.
 ///
 /// ```
-/// let response: String = local_llm::lazy_chat(
-///     &mut local_llm::init("/path/to/model.gguf"),
+/// let response: String = local_llm::single_chat(
+///     "/path/to/model.gguf",
 ///     "How do I write a resume?",
 /// );
 /// ```
 /// 
 /// See `init(..)` and `chat(..)`, since this simply wraps them.
-pub fn lazy_chat(llama_path: &str, prompt: &str) -> String {
-    chat(&mut init(llama_path), prompt, None)
+pub fn single_chat(llama_path: &str, prompt: &str) -> String {
+    let mut llm = init(llama_path);
+    let response = chat(&mut llm, prompt, None);
+    drop(llm);
+    response
 }
